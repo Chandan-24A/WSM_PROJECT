@@ -1,138 +1,121 @@
-# Information Retrieval System (Web Search Mining)
+# Web Search Mining - Information Retrieval System
 
-A small, college-level Information Retrieval / Web Search Mining system in Python.
-It demonstrates the classical components of a search engine: an inverted index,
-Boolean (AND) query processing, wildcard matching, and TF-IDF + cosine-similarity
-ranking, with a modern Tkinter GUI.
+A Python-based Information Retrieval (IR) and Web Search Mining project designed for college-level learning. It illustrates the fundamental parts of a search engine, such as building an inverted index, handling Boolean AND queries, processing wildcards, and ranking results using TF-IDF and cosine similarity, all presented through a modern Tkinter graphical interface.
 
-The document corpus currently consists of 19 plain-text documents containing acts from various Shakespeare plays (such as *Hamlet*, *Macbeth*, *King Lear*, and *Henry IV*).
+The current text corpus includes 19 plain-text documents featuring acts from well-known Shakespearean plays like *Hamlet*, *Macbeth*, *King Lear*, and *Henry IV*.
 
 ## 1. Project Objective
 
-Show how a traditional search engine turns a collection of text documents and a
-user query into a ranked list of relevant documents, using only classical IR
-techniques (no embeddings, no machine learning, no external search services).
+The goal is to demonstrate how a classic search engine processes a collection of text documents alongside a user's query to generate a ranked list of relevant results. This relies entirely on traditional IR methodologies (without the use of embeddings, machine learning models, or third-party search APIs).
 
 ## 2. Information Retrieval Pipeline
 
-```
-Document Loading
-   -> Tokenization
-   -> Stop-word Removal
-   -> Normalization
-   -> Inverted Index Construction
-   -> Query Processing
-   -> Wildcard Processing
-   -> Document Retrieval
-   -> Ranking (TF-IDF + cosine similarity)
-   -> GUI Display (with query-focused snippets)
-```
+* Document Loading
+* Tokenization
+* Stop-word Removal
+* Normalization
+* Inverted Index Construction
+* Query Processing
+* Wildcard Processing
+* Document Retrieval
+* Ranking (TF-IDF & cosine similarity)
+* GUI Display (featuring keyword-focused snippets)
 
-Text diagram:
+Text diagram overview:
 
-```
-              +-------------------+
-  .txt files  |  document_loader  |  doc_id -> filename, doc_id -> text
-------------->|                   |
-              +---------+---------+
-                        |
-                        v
-              +-------------------+
-              |  text_processor   |  normalize -> tokenize -> remove stop words
-              +---------+---------+
-                        |
-                        v
-              +-------------------+
-              |     indexer       |  term -> {doc_ids}, term frequencies
-              +---------+---------+
-                        |
-   query                v
-  "king*"      +-------------------+
-------------->| query_processor   |  preprocess query, expand wildcards,
-              |   + wildcard      |  intersect posting lists (AND)
-              +---------+---------+
-                        |
-                        v
-              +-------------------+
-              |      ranker       |  TF-IDF vectors, cosine similarity
-              +---------+---------+
-                        |
-                        v
-              +-------------------+
-              |  search_engine    |  returns [{filename, score, preview}]
-              +---------+---------+
-                        |
-                        v
-              +-------------------+
-              |       gui         |  Modern Tkinter: input box, button, results area
-              +-------------------+
+```text
+               +-------------------+
+   .txt files  |  document_loader  |  Returns doc_id -> filename, doc_id -> text
+ ------------->|                   |
+               +---------+---------+
+                         |
+                         v
+               +-------------------+
+               |  text_processor   |  Normalizes, tokenizes, removes stop words
+               +---------+---------+
+                         |
+                         v
+               +-------------------+
+               |     indexer       |  Maps terms to {doc_ids} and term frequencies
+               +---------+---------+
+                         |
+    query                v
+   "king*"      +-------------------+
+ ------------->| query_processor   |  Preprocesses query, handles wildcards,
+               |   + wildcard      |  intersects posting lists (AND logic)
+               +---------+---------+
+                         |
+                         v
+               +-------------------+
+               |      ranker       |  Calculates TF-IDF vectors & cosine similarity
+               +---------+---------+
+                         |
+                         v
+               +-------------------+
+               |  search_engine    |  Outputs [{filename, score, preview}]
+               +---------+---------+
+                         |
+                         v
+               +-------------------+
+               |       gui         |  Modern Tkinter: search bar, button, results display
+               +-------------------+
 ```
 
 ## 3. Architecture
 
-The IR logic is fully separated from the GUI. The GUI only calls
-`SearchEngine.search()` and never touches the inverted index directly.
+The Information Retrieval logic is strictly decoupled from the graphical user interface. The GUI simply invokes `SearchEngine.search()` and does not interact with the inverted index.
 
-```
+```text
 project/
 |
-├── data_files/               19 Shakespeare act files (*.txt)
+├── data_files/               19 text files of Shakespeare acts (*.txt)
 |
 ├── src/
-│   ├── document_loader.py    read .txt files, assign integer doc IDs
-│   ├── text_processor.py     normalize / tokenize / stop-word removal
-│   ├── indexer.py            InvertedIndex class
-│   ├── query_processor.py    QueryProcessor class (AND queries + wildcards)
-│   ├── wildcard.py           wildcard -> regex -> matching vocabulary terms
-│   ├── ranker.py             Ranker class (TF-IDF + cosine similarity)
-│   └── search_engine.py      SearchEngine class (interface used by the GUI)
+│   ├── document_loader.py    Reads .txt files, assigns unique integer doc IDs
+│   ├── text_processor.py     Handles normalization, tokenization, stop-word removal
+│   ├── indexer.py            Contains the InvertedIndex class
+│   ├── query_processor.py    Contains QueryProcessor class (AND operations + wildcards)
+│   ├── wildcard.py           Transforms wildcards to regex to find matching terms
+│   ├── ranker.py             Contains Ranker class (TF-IDF and cosine similarity)
+│   └── search_engine.py      Contains SearchEngine class (interface for the GUI)
 |
-├── gui.py                    Modernized Tkinter GUI
-├── main.py                   builds the index, launches the GUI
-├── requirements.txt          (standard library only)
+├── gui.py                    Updated Tkinter user interface
+├── main.py                   Initializes the index and opens the GUI
+├── requirements.txt          (Only standard libraries used)
 └── README.md
 ```
 
-| Module | Responsibility |
-| --- | --- |
-| `document_loader` | Read every `.txt` file, skip empty/unreadable ones, return `{doc_id: filename}` and `{doc_id: text}`. |
-| `text_processor` | One reusable `preprocess(text)` used for both documents and queries. |
-| `indexer` | Build `term -> set(doc_ids)`, keep per-document term counts and lengths, expose the vocabulary. |
-| `wildcard` | Detect `*` in a term and expand it to matching vocabulary terms via a regular expression. |
-| `query_processor` | Preprocess the query, expand wildcard terms, retrieve documents with AND semantics. |
-| `ranker` | Compute TF-IDF weights and rank candidate documents by cosine similarity to the query. |
-| `search_engine` | Wire everything together; computes intelligent keyword-centered previews. |
-| `gui` | Input box, Search button, Enter key, styled read-only results area. |
+**Module Responsibilities:**
+* `document_loader`: Reads all `.txt` files, skips unreadable ones, and returns mapping dictionaries for filenames and text content.
+* `text_processor`: Provides a reusable `preprocess(text)` function for both documents and user queries.
+* `indexer`: Constructs the `term -> set(doc_ids)` mapping, tracks term counts/lengths per document, and exposes the vocabulary.
+* `wildcard`: Identifies `*` in terms and expands them to matching vocabulary words using regular expressions.
+* `query_processor`: Cleans the query, processes wildcard terms, and fetches documents using AND logic.
+* `ranker`: Calculates TF-IDF weights and sorts candidate documents based on cosine similarity against the query.
+* `search_engine`: Connects all components and generates smart, keyword-centric text previews.
+* `gui`: Provides a stylized input field, search button, and read-only results section.
 
 ## 4. Tokenization
 
-`text_processor.tokenize()` splits normalized text on whitespace into a list of
-word tokens. Nothing more complex is needed for this corpus.
+The `text_processor.tokenize()` function divides the normalized text into individual word tokens based on whitespace. For this specific corpus, no further complexity is required.
 
 ## 5. Stop-word Removal
 
-`text_processor.remove_stop_words()` drops very common English words (plus a few
-archaic Shakespearean function words such as *thou*, *thee*, *hath*, *doth*)
-using a small hard-coded `STOP_WORDS` set. Stop words carry little meaning and
-inflate the index, so removing them improves both speed and ranking quality.
+The `text_processor.remove_stop_words()` function eliminates common English words (and specific Shakespearean terms like *thou*, *thee*, *hath*, *doth*) using a predefined `STOP_WORDS` list. Removing these non-informative words reduces the index size, accelerating searches and enhancing ranking accuracy.
 
 ## 6. Normalization
 
-`text_processor.normalize()` does two simple things:
+The `text_processor.normalize()` function performs two primary tasks:
+1. Converts all text to lowercase (ensuring `King` and `king` match).
+2. Replaces non-alphanumeric characters (excluding `*`) with spaces, effectively removing punctuation while preserving wildcard symbols.
 
-1. Lowercase the text (so `King` and `king` are the same term).
-2. Replace every character that is not a letter, digit, whitespace, or `*`
-   with a space (so punctuation is dropped). `*` is kept so wildcard queries
-   survive preprocessing.
-
-No stemming or lemmatization is done, to keep the behaviour easy to explain.
+To maintain simplicity and clarity, no stemming or lemmatization techniques are applied.
 
 ## 7. Inverted Indexing
 
-`indexer.InvertedIndex` builds, once at startup:
+The `indexer.InvertedIndex` component is built once upon execution:
 
-* `index`: `term -> set of document IDs` (the posting lists), e.g.
-
+* `index`: Maps terms to sets of document IDs (posting lists), for example:
   ```python
   {
       "love":  {4, 5, 9, 12, ...},
@@ -140,156 +123,101 @@ No stemming or lemmatization is done, to keep the behaviour easy to explain.
       "king":  {6, 7, 8, ...},
   }
   ```
+* `term_freq`: A dictionary mapping document IDs to term occurrence frequencies (used for TF calculations).
+* `doc_length`: Maps document IDs to their total token count.
 
-* `term_freq`: `doc_id -> Counter` of how often each term occurs in that document
-  (used by the ranker for TF).
-* `doc_length`: `doc_id -> token count`.
-
-Methods: `build()`, `lookup(term)`, `vocabulary()`, `document_count()`,
-`term_frequency(term, doc_id)`.
+Available methods include: `build()`, `lookup(term)`, `vocabulary()`, `document_count()`, and `term_frequency(term, doc_id)`.
 
 ## 8. Query Processing
 
-`query_processor.QueryProcessor.process(query)`:
+The `query_processor.QueryProcessor.process(query)` routine:
+1. Applies `preprocess()` to the query (using the same steps as document preprocessing).
+2. Removes terms that are entirely empty or consist only of `*`.
+3. Processes remaining terms:
+   * If a `*` is present, it expands to all matching terms in the vocabulary and combines their posting lists (Union).
+   * Otherwise, it directly retrieves the posting list for the term.
+4. Performs an intersection (**AND** operation) across all query terms' posting lists.
+5. Returns the resulting document IDs and the actual terms used, which are subsequently scored by the ranker.
 
-1. `preprocess()` the query (same normalization / tokenization / stop-word
-   removal as documents).
-2. Drop terms that are empty or only `*`.
-3. For each remaining term:
-   * if it contains `*`, expand it to all matching vocabulary terms and take the
-     **union** of their posting lists;
-   * otherwise, look up its posting list directly.
-4. Intersect the posting lists of all query terms (**AND** semantics): a
-   document is a candidate only if it matches every query term.
-5. Return the candidate document IDs and the list of concrete terms used
-   (wildcard expansions included), which the ranker then scores.
-
-Example: `love death` returns only documents that contain both *love* and *death*.
+*Example:* A query for `love death` will only retrieve documents containing both words.
 
 ## 9. Wildcard Processing
 
-`wildcard.expand(pattern, vocabulary)`:
+The `wildcard.expand(pattern, vocabulary)` function:
+1. Retrieves the vocabulary list from the inverted index.
+2. Translates the wildcard string into a regular expression, replacing `*` with `.*` and anchoring it.
+3. Returns all terms from the vocabulary that fit the regex pattern.
 
-1. Take the vocabulary from the inverted index.
-2. Convert the wildcard pattern to a regular expression: escape the pattern,
-   then replace `*` with `.*` and anchor it with `^...$`.
-3. Return every vocabulary term that matches the regex.
+Since `*` indicates "zero or more characters":
+* `learn*` matches learn, learned, learning
+* `*ing` matches king, thing, nothing, morning
+* `mach*ne` matches machine
 
-`*` means "zero or more characters", so:
-
-| Query | Matches (examples) |
-| --- | --- |
-| `learn*` | learn, learned, learning |
-| `*ing`   | king, thing, nothing, morning |
-| `mach*ne` | machine |
-
-No permuterm or k-gram index is used; a linear scan over ~10k vocabulary terms is
-instant at this scale.
+This operation scans through approximately 10k vocabulary terms linearly, which is virtually instantaneous.
 
 ## 10. TF-IDF Ranking
 
-`ranker.Ranker` uses the classic vector space model.
+The `ranker.Ranker` implements the traditional vector space model:
+* **Term Frequency (TF)**: `tf(t, d)` represents the raw count of term `t` in document `d`.
+* **Inverse Document Frequency (IDF)**: `idf(t) = log(N / df(t))`, where `N` is total documents and `df(t)` is the number of documents with term `t`.
+* **TF-IDF Weight**: `w(t, d) = tf(t, d) * idf(t)`.
 
-* **Term Frequency** `tf(t, d)` = number of times term `t` appears in document `d`
-  (raw count).
-* **Inverse Document Frequency** `idf(t) = log(N / df(t))`, where `N` is the
-  total number of documents and `df(t)` is the number of documents containing
-  `t`. Rare terms get a higher weight; a term appearing in every document gets
-  `idf = 0`.
-* **TF-IDF weight** `w(t, d) = tf(t, d) * idf(t)`.
-
-Both documents and the query are represented as vectors of TF-IDF weights over
-the vocabulary.
+Documents and queries are both modeled as vectors of TF-IDF weights.
 
 ## 11. Cosine Similarity
 
-The score of a document `d` for a query `q` is the cosine of the angle between
-their TF-IDF vectors:
+The relevance score of a document `d` given a query `q` is calculated as the cosine of the angle between their respective TF-IDF vectors.
 
-```
-                 sum over t of ( w(t, q) * w(t, d) )
+```text
+                 Sum over t of ( w(t, q) * w(t, d) )
 cosine(q, d) = -------------------------------------------
                         ||q||  *  ||d||
 ```
-
-where `||q||` and `||d||` are the vector lengths (Euclidean norms). This
-normalizes for document length, so long documents are not automatically favoured.
-Each document norm is computed once when the index is built. Results are sorted
-by decreasing cosine similarity.
-
-Cosine values are naturally small for short queries (a 1-2 word query vector
-against a document vector of thousands of terms). To make the ranking easier to
-read, each result also carries a **relative score**:
-
-```
-relative(d) = cosine(q, d) / max_cosine * 100
-```
-
-so the best-matching document shows 100% and the rest are shown as a percentage
-of it. This is only a display aid; the ranking order is still decided by the raw
-cosine similarity.
+This formula normalizes the score based on document length, preventing bias towards longer texts. The results are ordered by decreasing cosine similarity. To improve readability, a **relative score** percentage is also provided, comparing each result to the top match.
 
 ## 12. Smart Previews & GUI
 
-`search_engine.py` generates intelligent query-focused snippets, meaning the text previews returned to the GUI are centered around the exact matched term within the document.
+The `search_engine.py` script creates dynamic, context-aware text snippets for the GUI, highlighting the specific terms matched in the document.
 
-`gui.py` (Modern Tkinter):
+The `gui.py` interface features:
+* A streamlined, professional search bar.
+* A prominent Search button (also triggered by the Enter key).
+* An elegantly formatted results display area.
 
-* A clean, professionally styled single-line search input box.
-* A highlighted **Search** button (and the **Enter** key) that runs the search.
-* A beautifully styled, word-wrapped results area with dynamic typography and colors.
-
-For each hit it shows the rank, filename, cosine score, relative score (%), and a dynamically matched text snippet.
-It displays user-friendly alert messages directly in the result frame for: empty queries, queries containing only stop words, no matching documents, and wildcard patterns that match nothing.
+Results display the ranking, filename, raw cosine score, relative score, and the matched text snippet. It also presents user-friendly alerts for errors like empty queries or no matching documents.
 
 ## 13. How to Run the Project
 
-Requirements: Python 3.8+ with Tkinter (included in standard CPython on Windows
-and macOS; on Linux install `python3-tk`). No packages to install.
-
-```
+Requires Python 3.8+ with Tkinter support.
+```bash
 python main.py
 ```
-
-The console prints the document and vocabulary counts, then the GUI window opens.
-
-Quick check without the GUI:
-
-```
-python -c "from src.search_engine import SearchEngine; e=SearchEngine('data_files'); e.build_index(); print(e.search('king*')['results'][:3])"
-```
+This command initializes the index, prints basic statistics to the console, and launches the graphical interface.
 
 ## 14. Example Queries
 
-| Query | What it demonstrates |
-| --- | --- |
-| `love death` | multi-term AND query; *Romeo and Juliet* acts rank highest |
-| `king crown` | AND query across the history/tragedy acts |
-| `king*` | prefix wildcard (king, kingdom, kingly, kings) |
-| `*ing` | suffix wildcard (thing, nothing, morning, king) |
-| `mach*ne` | infix wildcard (matches *machine* in *Hamlet* Act 2) |
-| `nobl*` | prefix wildcard (noble, nobler, nobles, nobility) |
-| `lo*e` | infix wildcard (love, lose, lone, ...) |
-| `the and of` | only stop words -> handled message |
-| `machine learning` | no matching documents -> handled message |
-
-Several of these (e.g. `love death`, `king*`, `*ing`) return many documents with
-clearly different scores, which is useful for showing ranking behaviour.
+* `love death`: Demonstrates multi-term AND logic.
+* `king crown`: Searches across history and tragedy texts.
+* `king*`: Prefix wildcard matching (e.g., kingdom, kings).
+* `*ing`: Suffix wildcard matching (e.g., nothing, morning).
+* `mach*ne`: Infix wildcard matching (e.g., machine).
+* `the and of`: Stop words only (triggers a user message).
+* `machine learning`: No results found (triggers a user message).
 
 ## 15. Limitations
 
-* Only AND queries are supported (no OR, NOT, phrase, or proximity queries).
-* No stemming, so `love` and `loving` are different terms (use `lov*` instead).
-* Raw term-frequency weighting; no sublinear TF scaling or BM25.
-* Wildcard expansion is a linear scan of the vocabulary.
-* The index is in memory only and rebuilt on every startup.
-* Ranking is purely lexical: it has no notion of meaning or synonyms.
+* Exclusively supports AND queries (no OR, NOT, or phrase searching).
+* Lacks stemming support (`love` vs `loving`).
+* Uses raw term-frequency instead of advanced methods like BM25.
+* Performs linear scanning for wildcard expansions.
+* Index resides only in memory (rebuilt on startup).
+* Does not understand semantic meaning or synonyms.
 
 ## 16. Possible Future Improvements
 
-* Add OR / NOT / phrase queries and a small Boolean parser.
-* Add stemming (e.g. a simple Porter stemmer) as an optional step.
-* Store term positions to support phrase and proximity search.
-* Use sublinear TF weighting (`1 + log(tf)`) or BM25 for better ranking.
-* Persist the index to disk so startup is instant.
-* Show which terms matched (including wildcard expansions) in the GUI.
+* Introduce a Boolean parser for OR/NOT logic and phrase queries.
+* Implement a stemming algorithm (like Porter stemmer).
+* Track term positions for proximity searches.
+* Upgrade to BM25 or sublinear TF weighting.
+* Serialize and save the index to disk for faster loading.
+* Highlight exactly which terms matched within the GUI snippets.
