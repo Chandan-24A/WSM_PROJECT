@@ -10,7 +10,7 @@ The bundled corpus contains **19 plain-text acts** from *Hamlet*, *Macbeth*, *Ki
 
 ## 1. Project Features
 
-- Positional inverted index built entirely in memory.
+- Positional inverted index built entirely in the memory.
 - Text normalization and tokenization.
 - Stop-word removal.
 - Boolean search with:
