@@ -3,7 +3,7 @@ import os
 from src.search_engine import SearchEngine
 from gui import SearchGUI
 
-DOCUMENTS_DIR = os.path.join("data", "documents")
+DOCUMENTS_DIR = "data_files"
 
 
 def main():

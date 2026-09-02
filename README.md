@@ -1,13 +1,11 @@
-# Mini Information Retrieval System (Web Search Mining)
+# Information Retrieval System (Web Search Mining)
 
 A small, college-level Information Retrieval / Web Search Mining system in Python.
 It demonstrates the classical components of a search engine: an inverted index,
 Boolean (AND) query processing, wildcard matching, and TF-IDF + cosine-similarity
-ranking, with a simple Tkinter GUI.
+ranking, with a modern Tkinter GUI.
 
-The document corpus is 25 plain-text documents: five Shakespeare plays from the
-Folger Shakespeare Library (*All's Well That Ends Well*, *Antony and Cleopatra*,
-*As You Like It*, *Hamlet*, *Romeo and Juliet*), each split into one document per act.
+The document corpus currently consists of 19 plain-text documents containing acts from various Shakespeare plays (such as *Hamlet*, *Macbeth*, *King Lear*, and *Henry IV*).
 
 ## 1. Project Objective
 
@@ -27,7 +25,7 @@ Document Loading
    -> Wildcard Processing
    -> Document Retrieval
    -> Ranking (TF-IDF + cosine similarity)
-   -> GUI Display
+   -> GUI Display (with query-focused snippets)
 ```
 
 Text diagram:
@@ -66,7 +64,7 @@ Text diagram:
                         |
                         v
               +-------------------+
-              |       gui         |  Tkinter: input box, button, results area
+              |       gui         |  Modern Tkinter: input box, button, results area
               +-------------------+
 ```
 
@@ -78,8 +76,7 @@ The IR logic is fully separated from the GUI. The GUI only calls
 ```
 project/
 |
-├── data/
-│   └── documents/            25 Shakespeare act files (*.txt)
+├── data_files/               19 Shakespeare act files (*.txt)
 |
 ├── src/
 │   ├── document_loader.py    read .txt files, assign integer doc IDs
@@ -90,7 +87,7 @@ project/
 │   ├── ranker.py             Ranker class (TF-IDF + cosine similarity)
 │   └── search_engine.py      SearchEngine class (interface used by the GUI)
 |
-├── gui.py                    Tkinter GUI
+├── gui.py                    Modernized Tkinter GUI
 ├── main.py                   builds the index, launches the GUI
 ├── requirements.txt          (standard library only)
 └── README.md
@@ -104,8 +101,8 @@ project/
 | `wildcard` | Detect `*` in a term and expand it to matching vocabulary terms via a regular expression. |
 | `query_processor` | Preprocess the query, expand wildcard terms, retrieve documents with AND semantics. |
 | `ranker` | Compute TF-IDF weights and rank candidate documents by cosine similarity to the query. |
-| `search_engine` | Wire everything together; the only class the GUI talks to. |
-| `gui` | Input box, Search button, Enter key, read-only results area. |
+| `search_engine` | Wire everything together; computes intelligent keyword-centered previews. |
+| `gui` | Input box, Search button, Enter key, styled read-only results area. |
 
 ## 4. Tokenization
 
@@ -232,18 +229,18 @@ so the best-matching document shows 100% and the rest are shown as a percentage
 of it. This is only a display aid; the ranking order is still decided by the raw
 cosine similarity.
 
-## 12. GUI
+## 12. Smart Previews & GUI
 
-`gui.SearchGUI` (Tkinter):
+`search_engine.py` generates intelligent query-focused snippets, meaning the text previews returned to the GUI are centered around the exact matched term within the document.
 
-* a single-line search input box,
-* a **Search** button (and the **Enter** key) that runs the search,
-* a read-only, word-wrapped results area.
+`gui.py` (Modern Tkinter):
 
-For each hit it shows the rank, filename, cosine score, relative score (%), and a
-short text preview.
-It shows a plain message (never a crash) for: empty queries, queries containing
-only stop words, no matching documents, and wildcard patterns that match nothing.
+* A clean, professionally styled single-line search input box.
+* A highlighted **Search** button (and the **Enter** key) that runs the search.
+* A beautifully styled, word-wrapped results area with dynamic typography and colors.
+
+For each hit it shows the rank, filename, cosine score, relative score (%), and a dynamically matched text snippet.
+It displays user-friendly alert messages directly in the result frame for: empty queries, queries containing only stop words, no matching documents, and wildcard patterns that match nothing.
 
 ## 13. How to Run the Project
 
@@ -259,7 +256,7 @@ The console prints the document and vocabulary counts, then the GUI window opens
 Quick check without the GUI:
 
 ```
-python -c "from src.search_engine import SearchEngine; e=SearchEngine('data/documents'); e.build_index(); print(e.search('king*')['results'][:3])"
+python -c "from src.search_engine import SearchEngine; e=SearchEngine('data_files'); e.build_index(); print(e.search('king*')['results'][:3])"
 ```
 
 ## 14. Example Queries
@@ -285,8 +282,7 @@ clearly different scores, which is useful for showing ranking behaviour.
 * No stemming, so `love` and `loving` are different terms (use `lov*` instead).
 * Raw term-frequency weighting; no sublinear TF scaling or BM25.
 * Wildcard expansion is a linear scan of the vocabulary.
-* The index is in memory only and rebuilt on every startup (fine for 25 documents).
-* Previews are the first ~200 characters of the file, not a query-focused snippet.
+* The index is in memory only and rebuilt on every startup.
 * Ranking is purely lexical: it has no notion of meaning or synonyms.
 
 ## 16. Possible Future Improvements
@@ -295,6 +291,5 @@ clearly different scores, which is useful for showing ranking behaviour.
 * Add stemming (e.g. a simple Porter stemmer) as an optional step.
 * Store term positions to support phrase and proximity search.
 * Use sublinear TF weighting (`1 + log(tf)`) or BM25 for better ranking.
-* Query-focused snippet generation with highlighted matches.
 * Persist the index to disk so startup is instant.
 * Show which terms matched (including wildcard expansions) in the GUI.

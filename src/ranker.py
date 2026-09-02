@@ -12,11 +12,9 @@ class Ranker:
     def _prepare(self):
         n = self.index.document_count()
 
-        # idf(term) = log(N / df(term))
         for term, doc_ids in self.index.index.items():
             self.idf[term] = math.log(n / len(doc_ids))
 
-        # precompute each document's tf-idf vector length for cosine similarity
         for doc_id in self.index.doc_ids:
             total = 0.0
             for term, freq in self.index.term_freq[doc_id].items():
@@ -27,7 +25,6 @@ class Ranker:
     def rank(self, query_terms, candidate_doc_ids):
         query_counts = Counter(query_terms)
 
-        # build the query tf-idf vector
         query_vector = {}
         for term, freq in query_counts.items():
             if term in self.idf:

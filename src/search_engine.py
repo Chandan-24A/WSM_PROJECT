@@ -22,10 +22,30 @@ class SearchEngine:
         self.query_processor = QueryProcessor(self.index)
         self.ranker = Ranker(self.index)
 
-    def preview(self, doc_id, length=200):
+    def preview(self, doc_id, matched_terms=None, length=200):
         text = re.sub(r"\s+", " ", self.doc_texts[doc_id]).strip()
+
+        if matched_terms:
+            text_lower = text.lower()
+            match_idx = -1
+            for term in matched_terms:
+                idx = text_lower.find(term.lower())
+                if idx != -1:
+                    match_idx = idx
+                    break
+
+            if match_idx != -1:
+                start = max(0, match_idx - length // 2)
+                end = min(len(text), match_idx + length // 2)
+                snippet = text[start:end]
+                if start > 0:
+                    snippet = "..." + snippet
+                if end < len(text):
+                    snippet = snippet + "..."
+                return snippet
+
         if len(text) > length:
-            text = text[:length] + "..."
+            return text[:length] + "..."
         return text
 
     def search(self, query):
@@ -51,7 +71,7 @@ class SearchEngine:
                 "filename": self.doc_filenames[doc_id],
                 "score": score,
                 "relative": relative,
-                "preview": self.preview(doc_id),
+                "preview": self.preview(doc_id, matched_terms),
             })
 
         return {"status": "ok", "results": results}

@@ -5,9 +5,9 @@ from src.text_processor import preprocess
 
 class InvertedIndex:
     def __init__(self):
-        self.index = {}          # term -> set of doc IDs
-        self.term_freq = {}      # doc ID -> Counter of term counts
-        self.doc_length = {}     # doc ID -> number of tokens
+        self.index = {}
+        self.term_freq = {}
+        self.doc_length = {}
         self.doc_ids = []
 
     def build(self, doc_texts):
