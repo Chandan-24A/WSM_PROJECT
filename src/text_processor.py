@@ -7,7 +7,7 @@ STOP_WORDS = {
     "so", "than", "that", "the", "thee", "their", "them", "then", "there",
     "these", "they", "this", "thou", "thy", "to", "too", "us", "was", "we",
     "were", "what", "when", "which", "who", "will", "with", "would", "you",
-    "your", "ye", "hath", "doth", "shall", "upon",
+    "your", "ye", "hath", "doth", "shall", "upon", "was"
 }
 
 
