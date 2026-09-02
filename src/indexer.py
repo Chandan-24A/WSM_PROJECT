@@ -4,6 +4,8 @@ from src.text_processor import preprocess
 
 
 class InvertedIndex:
+    """In-memory positional inverted index: term -> document -> token positions."""
+
     def __init__(self):
         self.index = {}
         self.term_freq = {}
@@ -16,19 +18,20 @@ class InvertedIndex:
             self.doc_ids.append(doc_id)
             self.term_freq[doc_id] = Counter(tokens)
             self.doc_length[doc_id] = len(tokens)
-            for term in set(tokens):
-                if term not in self.index:
-                    self.index[term] = set()
-                self.index[term].add(doc_id)
+            for position, term in enumerate(tokens):
+                self.index.setdefault(term, {}).setdefault(doc_id, []).append(position)
 
     def lookup(self, term):
-        return self.index.get(term, set())
+        return set(self.index.get(term, {}))
 
     def vocabulary(self):
-        return list(self.index.keys())
+        return list(self.index)
 
     def document_count(self):
         return len(self.doc_ids)
 
     def term_frequency(self, term, doc_id):
         return self.term_freq.get(doc_id, {}).get(term, 0)
+
+    def get_positions(self, term, doc_id):
+        return self.index.get(term, {}).get(doc_id, [])
