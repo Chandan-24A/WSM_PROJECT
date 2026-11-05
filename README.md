@@ -1,8 +1,19 @@
-# Shakespeare Web Search & Mining System (Graduation Level)
+# Information Retrieval System (WSM Project)
 
-A Python-based **Information Retrieval (IR) and Web Search Mining (WSM) system** indexing a local Shakespeare corpus (19 acts from *Hamlet, Macbeth, King Lear, Henry IV*).
+A graduation-level **Information Retrieval (IR) and Web Search & Mining (WSM) System** indexing a local Shakespeare corpus (19 acts from *Hamlet, Macbeth, King Lear, Henry IV*).
 
-Designed to align strictly with standard **undergraduate/graduation curriculum requirements** for Web Search & Mining / Information Retrieval courses.
+---
+
+## Student & Project Metadata
+
+| Field | Details |
+|---|---|
+| **Student Name** | Chandan Kumar Sahoo |
+| **Student ID** | B524024 |
+| **Branch** | Computer Engineering |
+| **Course** | Web Search & Mining (WSM) |
+| **Assignment** | Graduation-Level WSM Assignment & Implementation |
+| **Report Document** | `Information_Retrieval_System_Project_Report.pdf` |
 
 ---
 
@@ -84,3 +95,56 @@ Converted from the desktop GUI to a modern, responsive web application:
    ```
 
 *(To run the desktop Tkinter interface instead, run `python main.py --gui`.)*
+
+---
+
+## 4. Academic Project Report (PDF)
+
+A 6-page project report is included:
+- **File**: `Information_Retrieval_System_Project_Report.pdf` (and `Information_Retrieval_System_Report.pdf`)
+- **Metadata**:
+  - **Student Name**: Chandan Kumar Sahoo
+  - **ID**: B524024
+  - **Branch**: Computer Engineering
+  - **Course**: Web Search & Mining (WSM)
+- **Contents**:
+  - Full system architecture and module pipeline breakdown
+  - Inverted index & phrase verification mathematical algorithms
+  - Tolerant retrieval with 3-gram index and dynamic programming Levenshtein distance
+  - Vector Space Model (TF-IDF Cosine similarity) formulation and Rocchio PRF
+  - Power-Iteration PageRank algorithm, transition matrices, and hybrid ranking
+  - Domain valence sentiment lexicon and character opinion mining
+  - Empirical evaluation benchmark suite (MAP, MRR, P@5, NDCG@5)
+  - Full project summary matrix and annotated UI figure captures
+
+---
+
+## 5. Project Directory Structure
+
+```text
+WSM_Project/
+├── app.py                                       # Flask REST API server and routes
+├── gui.py                                       # Standalone Tkinter desktop interface
+├── main.py                                      # Unified CLI / web entrypoint
+├── requirements.txt                             # Python dependencies
+├── README.md                                    # Project documentation
+├── Information_Retrieval_System_Project_Report.pdf  # 6-page Academic PDF Report
+├── data_files/                                  # 19 Shakespeare Acts (Hamlet, Macbeth, Lear, Henry IV)
+├── report_assets/                               # UI figures and visualization assets
+├── src/
+│   ├── document_loader.py                       # Corpus loading and metadata extraction
+│   ├── text_processor.py                        # Linguistic normalizer, stemmer, stopword filter
+│   ├── indexer.py                               # Positional inverted index & 3-gram builder
+│   ├── wildcard.py                              # Tolerant retrieval & Levenshtein spellchecker
+│   ├── query_processor.py                       # Shunting-Yard Boolean parser & phrase verifier
+│   ├── ranker.py                                # Vector Space Model (TF-IDF Cosine ranker)
+│   ├── pagerank.py                              # Power Iteration PageRank graph analyzer
+│   ├── query_expansion.py                       # Thesaurus & Rocchio PRF query expander
+│   ├── sentiment.py                             # Valence lexicon & character opinion miner
+│   └── evaluation.py                            # IR benchmark metrics (MAP, MRR, NDCG)
+├── static/
+│   ├── app.js                                   # Interactive single-page application frontend
+│   └── style.css                                # Modern responsive styles & animations
+└── templates/
+    └── index.html                               # Modern HTML5 web application template
+```
