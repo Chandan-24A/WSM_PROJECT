@@ -6,7 +6,7 @@ class SearchGUI:
     def __init__(self, engine):
         self.engine = engine
         self.root = tk.Tk()
-        self.root.title("WSM Search Engine")
+        self.root.title("Information Retrieval System")
         self.root.geometry("900x700")
         self.root.configure(bg="#F4F6F9")
 
@@ -115,6 +115,8 @@ class SearchGUI:
         status = response["status"]
 
         dym = response.get("did_you_mean")
+        self.dym = dym
+        self.query = query
 
         if status == "empty":
             self.show_message("Please enter a search query above.", "error")

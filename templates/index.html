@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Information Retrieval System - Web Search & Mining</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Navbar Header -->
+    <header class="navbar">
+      <div class="navbar-inner">
+        <div class="brand-block">
+          <div class="brand-icon">⚡</div>
+          <div class="brand-info">
+            <span class="brand-name">Information Retrieval System</span>
+            <span class="brand-sub">Web Search & mining
+              
+            </span>
+          </div>
+        </div>
+
+        <nav class="nav-links" role="tablist">
+          <button class="nav-btn active" data-tab="tab-search" role="tab">
+            <span class="nav-btn-icon">🔍</span> Search Engine
+          </button>
+          <button class="nav-btn" data-tab="tab-pagerank" role="tab">
+            <span class="nav-btn-icon">🕸️</span> PageRank
+          </button>
+          <button class="nav-btn" data-tab="tab-sentiment" role="tab">
+            <span class="nav-btn-icon">💬</span> Opinion Mining
+          </button>
+          <button class="nav-btn" data-tab="tab-evaluation" role="tab">
+            <span class="nav-btn-icon">📊</span> Evaluation (MAP/MRR)
+          </button>
+          <button class="nav-btn" data-tab="tab-corpus" role="tab">
+            <span class="nav-btn-icon">📚</span> Corpus Library
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- Content Wrapper -->
+    <main class="main-container">
+
+      <!-- ================= TAB 1: SEARCH ENGINE ================= -->
+      <section id="tab-search" class="tab-view active">
+        <!-- Hero Search Area -->
+        <div class="hero-section">
+          <div class="hero-badge">Web Search & Mining Project</div>
+          <h1 class="hero-heading">Information Retrieval System</h1>
+          <p class="hero-lead">
+            High-performance retrieval engine supporting Positional Inverted Indexing, Boolean queries, exact phrases, 3-gram tolerant wildcards, and PageRank link analysis.
+          </p>
+
+          <!-- Search Card Container -->
+          <div class="search-box-card">
+            <form id="search-form" class="search-form" autocomplete="off">
+              <div class="search-field-container">
+                <span class="search-field-icon">🔍</span>
+                <input 
+                  type="text" 
+                  id="search-input" 
+                  placeholder="Search corpus (e.g., &quot;to be or not to be&quot;, king AND crown, macb*, dagger)..." 
+                  autocomplete="off"
+                  spellcheck="false"
+                  required
+                >
+                <span class="kbd-hint">Press <strong>/</strong> to focus</span>
+                <button type="button" id="clear-search-btn" class="clear-search-btn" aria-label="Clear input">✕</button>
+              </div>
+              <button type="submit" class="btn btn-search">Search</button>
+            </form>
+
+            <!-- Autocomplete Floating Dropdown -->
+            <div id="autocomplete-dropdown" class="autocomplete-dropdown hidden"></div>
+
+            <!-- Search Controls -->
+            <div class="search-modifiers">
+              <div class="modifier-item">
+                <label class="toggle-control">
+                  <input type="checkbox" id="expansion-toggle">
+                  <span class="toggle-slider"></span>
+                  <span class="toggle-label"><strong>Query Expansion</strong> (Thesaurus / Rocchio PRF)</span>
+                </label>
+              </div>
+
+              <div class="modifier-item pr-control">
+                <span class="modifier-label">
+                  <strong>PageRank Weight:</strong> <span id="pr-weight-label" class="badge-accent">0%</span>
+                </span>
+                <input type="range" id="pr-weight-slider" min="0" max="0.5" step="0.05" value="0">
+              </div>
+            </div>
+
+            <!-- Quick Preset Chips -->
+            <div class="sample-chips-row">
+              <span class="chips-intro">Quick Queries:</span>
+              <button class="sample-chip" data-q='"to be or not to be"'>"to be or not to be"</button>
+              <button class="sample-chip" data-q="king AND NOT crown">king AND NOT crown</button>
+              <button class="sample-chip" data-q="(king OR queen) AND crown">(king OR queen) AND crown</button>
+              <button class="sample-chip" data-q="hamlet ghost father">hamlet ghost father</button>
+              <button class="sample-chip" data-q="dagger murder">dagger murder</button>
+              <button class="sample-chip" data-q="mach*ne">mach*ne (wildcard)</button>
+              <button class="sample-chip" data-q="hamelt">hamelt (spelling tolerance)</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Search Results View -->
+        <div id="search-results-section" class="results-section hidden">
+          <!-- Results Header & Filters -->
+          <div class="results-toolbar">
+            <div class="results-meta-info">
+              <span id="results-count-badge" class="count-badge">Found 0 results</span>
+              <span class="model-badge">Vector Space Model (TF-IDF Cosine)</span>
+            </div>
+
+            <!-- Play Filter Pills -->
+            <div class="play-filters" id="play-filter-container">
+              <span class="filter-label">Filter Play:</span>
+              <button class="filter-pill active" data-filter="all">All (19)</button>
+              <button class="filter-pill" data-filter="Hamlet">Hamlet</button>
+              <button class="filter-pill" data-filter="Macbeth">Macbeth</button>
+              <button class="filter-pill" data-filter="King Lear">King Lear</button>
+              <button class="filter-pill" data-filter="Henry IV">Henry IV</button>
+            </div>
+          </div>
+
+          <!-- Did You Mean Banner -->
+          <div id="dym-banner" class="alert-banner dym-banner hidden">
+            <span>💡 Did you mean: <button type="button" id="dym-link-btn" class="dym-anchor"></button>?</span>
+          </div>
+
+          <!-- Expansion Banner -->
+          <div id="expansion-info-banner" class="alert-banner expansion-banner hidden">
+            <span>✨ Automatically enriched query terms: <strong id="expansion-terms-text"></strong></span>
+          </div>
+
+          <!-- Cards List -->
+          <div id="results-card-container" class="results-card-container"></div>
+
+          <!-- Pagination Bar -->
+          <div id="pagination-toolbar" class="pagination-toolbar">
+            <button id="page-prev-btn" class="btn btn-secondary" disabled>← Previous</button>
+            <span id="pagination-status" class="page-status-text">Page 1 of 1</span>
+            <button id="page-next-btn" class="btn btn-secondary" disabled>Next →</button>
+          </div>
+        </div>
+
+        <!-- Empty Placeholder -->
+        <div id="empty-search-placeholder" class="empty-placeholder">
+          <div class="empty-art">🏛️</div>
+          <h3>Ready for Retrieval</h3>
+          <p>Search across 19 dramatic acts using Boolean operators, exact phrases, or natural queries. The Vector Space Model scores and ranks matching documents by Cosine similarity.</p>
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 2: PAGERANK ANALYSIS ================= -->
+      <section id="tab-pagerank" class="tab-view">
+        <div class="content-card">
+          <div class="card-title-bar">
+            <div>
+              <h2>PageRank Link Analysis</h2>
+              <p class="card-caption">
+                Iterative link analysis algorithm calculating the stationary probability distribution (random-walk with teleportation $d=0.85$, $\epsilon=10^{-6}$).
+              </p>
+            </div>
+            <button id="recompute-pr-btn" class="btn btn-secondary">Recalculate Graph</button>
+          </div>
+
+          <!-- PageRank Metric Highlights -->
+          <div class="kpi-grid-3">
+            <div class="kpi-box">
+              <span class="kpi-label">Corpus Web Graph</span>
+              <span class="kpi-num">19 Nodes</span>
+              <span class="kpi-sub">Sequential & thematic act edges</span>
+            </div>
+            <div class="kpi-box">
+              <span class="kpi-label">Damping Factor ($d$)</span>
+              <span class="kpi-num">0.85</span>
+              <span class="kpi-sub">Teleportation rate 15%</span>
+            </div>
+            <div class="kpi-box highlight-box">
+              <span class="kpi-label">Top Authority Act</span>
+              <span id="top-pr-name" class="kpi-num accent-text">Loading...</span>
+              <span class="kpi-sub">Highest eigenvector centrality</span>
+            </div>
+          </div>
+
+          <!-- PageRank Score Table -->
+          <div class="table-frame">
+            <table class="styled-table">
+              <thead>
+                <tr>
+                  <th>Authority Rank</th>
+                  <th>Play & Act</th>
+                  <th>PageRank Score</th>
+                  <th>In-Degree (Citations)</th>
+                  <th>Out-Degree (Transitions)</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="pr-table-rows">
+                <tr><td colspan="6" class="table-empty-msg">Computing PageRank vector via power iteration...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 3: OPINION MINING & SENTIMENT ================= -->
+      <section id="tab-sentiment" class="tab-view">
+        <div class="content-card">
+          <div class="card-title-bar">
+            <div>
+              <h2>Opinion Mining & Sentiment Analysis</h2>
+              <p class="card-caption">
+                Text mining & dramatic valence analysis quantifying tragic turmoil, heroic virtue, and character-directed opinions.
+              </p>
+            </div>
+          </div>
+
+          <h3>Play-by-Play Emotional Spectrum</h3>
+          <div id="play-sentiment-display" class="play-sentiment-grid"></div>
+
+          <div class="ui-divider"></div>
+
+          <!-- Character Opinion Miner Interactive Tool -->
+          <div class="opinion-miner-widget">
+            <h3>Character Opinion & Sentiment Miner</h3>
+            <p class="card-caption">Extract and classify dialogue sentiments referencing specific figures across all 19 acts.</p>
+            
+            <div class="miner-search-group">
+              <input type="text" id="character-query-input" placeholder="Type figure name (e.g. Hamlet, Falstaff, Lady Macbeth, Duncan, Lear)..." value="Hamlet">
+              <button id="btn-run-miner" class="btn btn-primary">Mine Dialogue Sentiments</button>
+            </div>
+
+            <!-- Quick Character Selector Chips -->
+            <div class="preset-character-chips">
+              <span class="preset-label">Prominent Entities:</span>
+              <button class="entity-pill" data-name="Hamlet">Hamlet</button>
+              <button class="entity-pill" data-name="Falstaff">Falstaff</button>
+              <button class="entity-pill" data-name="Macbeth">Macbeth</button>
+              <button class="entity-pill" data-name="Lady Macbeth">Lady Macbeth</button>
+              <button class="entity-pill" data-name="Duncan">Duncan</button>
+              <button class="entity-pill" data-name="Lear">Lear</button>
+              <button class="entity-pill" data-name="Ophelia">Ophelia</button>
+            </div>
+
+            <div id="miner-results-feed" class="miner-results-feed">
+              <p class="table-empty-msg">Click 'Mine Dialogue Sentiments' to view character dialogue excerpts.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 4: IR EVALUATION SUITE ================= -->
+      <section id="tab-evaluation" class="tab-view">
+        <div class="content-card">
+          <div class="card-title-bar">
+            <div>
+              <h2>Information Retrieval Evaluation Suite</h2>
+              <p class="card-caption">
+                Formal benchmark evaluation measuring precision, recall, MAP, and NDCG against ground-truth relevance judgments.
+              </p>
+            </div>
+            <button id="execute-eval-btn" class="btn btn-primary">Run Benchmark Suite</button>
+          </div>
+
+          <!-- KPI Metric Cards -->
+          <div class="kpi-grid-4">
+            <div class="kpi-box kpi-map">
+              <span class="kpi-label">Mean Average Precision (MAP)</span>
+              <span id="eval-map-val" class="kpi-num">--</span>
+              <span class="kpi-sub">Rank-sensitive precision</span>
+            </div>
+            <div class="kpi-box kpi-mrr">
+              <span class="kpi-label">Mean Reciprocal Rank (MRR)</span>
+              <span id="eval-mrr-val" class="kpi-num">--</span>
+              <span class="kpi-sub">First relevant document rank</span>
+            </div>
+            <div class="kpi-box kpi-p5">
+              <span class="kpi-label">Mean Precision@5</span>
+              <span id="eval-p5-val" class="kpi-num">--</span>
+              <span class="kpi-sub">Relevant in top 5 retrieved</span>
+            </div>
+            <div class="kpi-box kpi-ndcg">
+              <span class="kpi-label">Mean NDCG@5</span>
+              <span id="eval-ndcg-val" class="kpi-num">--</span>
+              <span class="kpi-sub">Discounted cumulative gain</span>
+            </div>
+          </div>
+
+          <!-- Query Breakdown Table -->
+          <div class="table-frame">
+            <table class="styled-table">
+              <thead>
+                <tr>
+                  <th>Benchmark Query</th>
+                  <th>Relevance Objective / Scenario</th>
+                  <th>P@5</th>
+                  <th>R@5</th>
+                  <th>F1@5</th>
+                  <th>Avg Precision (AP)</th>
+                  <th>NDCG@5</th>
+                  <th>Reciprocal Rank</th>
+                </tr>
+              </thead>
+              <tbody id="eval-table-rows">
+                <tr><td colspan="8" class="table-empty-msg">Click 'Run Benchmark Suite' to execute formal IR evaluation.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ================= TAB 5: CORPUS LIBRARY ================= -->
+      <section id="tab-corpus" class="tab-view">
+        <div class="content-card">
+          <div class="card-title-bar">
+            <div>
+              <h2>Corpus Document Library</h2>
+              <p class="card-caption">
+                All 19 indexed Shakespeare Acts with word counts and calculated PageRank authority weights.
+              </p>
+            </div>
+          </div>
+          <div id="corpus-cards-grid" class="corpus-grid">
+            <p class="table-empty-msg">Loading corpus catalogue...</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Accessible Modal for Document Reading -->
+    <dialog id="doc-reader-dialog" class="doc-reader-dialog">
+      <div class="dialog-card">
+        <div class="dialog-top">
+          <div>
+            <h2 id="dialog-act-title">Act Document</h2>
+            <div id="dialog-act-meta" class="act-meta-tags"></div>
+          </div>
+          <div class="dialog-top-actions">
+            <input type="text" id="dialog-filter-input" placeholder="Search in this act..." class="dialog-search-input">
+            <button id="dialog-close-btn" class="dialog-close-btn" aria-label="Close document">✕</button>
+          </div>
+        </div>
+        <div class="dialog-scroll-body">
+          <pre id="dialog-raw-content" class="dialog-text-content"></pre>
+        </div>
+      </div>
+    </dialog>
+
+    <!-- Toast Notification -->
+    <div id="app-toast" class="app-toast hidden"></div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

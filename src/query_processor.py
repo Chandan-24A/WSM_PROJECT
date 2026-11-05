@@ -1,6 +1,5 @@
 import re
-
-from src.text_processor import preprocess
+from src.text_processor import preprocess, normalize
 from src.wildcard import expand, has_wildcard
 
 
@@ -10,8 +9,9 @@ class QueryProcessor:
     OPERATORS = {"AND", "OR", "NOT"}
     PRECEDENCE = {"NOT": 3, "AND": 2, "OR": 1}
 
-    def __init__(self, index):
+    def __init__(self, index, kgram_index=None):
         self.index = index
+        self.kgram_index = kgram_index
         self.last_error = None
 
     def _tokenize_query(self, query):
@@ -46,12 +46,12 @@ class QueryProcessor:
         for token in tokens:
             if isinstance(token, tuple):
                 if not expecting_operand:
-                    raise ValueError("Missing Boolean operator")
+                    raise ValueError("Missing Boolean operator between terms")
                 output.append(token)
                 expecting_operand = False
             elif token == "(":
                 if not expecting_operand:
-                    raise ValueError("Missing Boolean operator")
+                    raise ValueError("Missing operator before opening parenthesis")
                 operators.append(token)
             elif token == ")":
                 if expecting_operand:
@@ -81,21 +81,30 @@ class QueryProcessor:
         return output
 
     def _term_documents(self, term, matched_terms):
-        terms = preprocess(term)
-        if not terms:
+        cleaned = normalize(term).strip()
+        if not cleaned or cleaned.strip("*") == "":
             return set()
-        normalized = terms[0]
-        if normalized.strip("*") == "":
-            return set()
-        if has_wildcard(normalized):
-            expansions = expand(normalized, self.index.vocabulary())
+
+        if has_wildcard(cleaned):
+            expansions = expand(cleaned, self.index.vocabulary(include_stopwords=True), self.kgram_index)
             matched_terms.extend(expansions)
             return set().union(*(self.index.lookup(item) for item in expansions)) if expansions else set()
+
+        tokens = preprocess(cleaned, keep_stopwords=False)
+        if not tokens:
+            # Check if it's a stopword present in vocabulary
+            if cleaned in self.index.index:
+                # Recognized as stop word
+                pass
+            return set()
+
+        normalized = tokens[0]
         matched_terms.append(normalized)
         return self.index.lookup(normalized)
 
     def _positions_for(self, term):
-        terms = expand(term, self.index.vocabulary()) if has_wildcard(term) else [term]
+        cleaned = normalize(term).strip()
+        terms = expand(cleaned, self.index.vocabulary(include_stopwords=True), self.kgram_index) if has_wildcard(cleaned) else [cleaned]
         positions = {}
         for item in terms:
             for doc_id in self.index.lookup(item):
@@ -103,19 +112,22 @@ class QueryProcessor:
         return positions, terms
 
     def _phrase_documents(self, phrase, matched_terms):
-        terms = [term for term in preprocess(phrase) if term.strip("*")]
+        # Keep all words in phrase to preserve original word positions
+        terms = preprocess(phrase, keep_stopwords=True)
         if not terms:
             return set()
         position_maps = []
         for term in terms:
             positions, expansions = self._positions_for(term)
-            matched_terms.extend(expansions)
+            matched_terms.extend([t for t in expansions if t not in matched_terms])
             if not positions:
                 return set()
             position_maps.append(positions)
+
         candidate_docs = set(position_maps[0])
         for position_map in position_maps[1:]:
             candidate_docs &= set(position_map)
+
         matches = set()
         for doc_id in candidate_docs:
             possible_positions = position_maps[0][doc_id]
@@ -136,17 +148,26 @@ class QueryProcessor:
         self.last_error = None
         matched_terms = []
         try:
-            postfix = self._to_postfix(self._tokenize_query(query))
+            tokens = self._tokenize_query(query)
+            if not tokens:
+                return set(), []
+
+            postfix = self._to_postfix(tokens)
             if not postfix:
                 return set(), matched_terms
+
             stack = []
             all_docs = set(self.index.doc_ids)
             for token in postfix:
                 if isinstance(token, tuple):
                     stack.append(self._evaluate_operand(token, matched_terms))
                 elif token == "NOT":
+                    if not stack:
+                        raise ValueError("Missing operand for NOT")
                     stack.append(all_docs - stack.pop())
                 else:
+                    if len(stack) < 2:
+                        raise ValueError(f"Missing operand for {token}")
                     right, left = stack.pop(), stack.pop()
                     stack.append(left & right if token == "AND" else left | right)
             if len(stack) != 1:
